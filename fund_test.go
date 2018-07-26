@@ -42,8 +42,8 @@ func BenchmarkWithdrawals(b *testing.B) {
 	// Wait for all the workers to finish
 	wg.Wait()
 
-	if fund.balance() != 0 {
-		b.Error("Balance wasn't zero:", fund.Balance()))
+	if fund.Balance() != 0 {
+		b.Error("Balance wasn't zero:", fund.Balance())
 	}
 }
 
