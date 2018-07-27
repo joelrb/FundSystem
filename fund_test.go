@@ -34,7 +34,12 @@ func BenchmarkWithdrawals(b *testing.B) {
 			defer wg.Done()
 
 			for i := 0; i < dollarsPerFounder; i++ {
-				server.Commands <- WithdrawCommand{Amount: 1}
+
+				// Stop when we're down to pizza money
+				if server.Balance() <= 10 {
+					break
+				}
+				server.Withdraw(i)
 			}
 		}() // Remember to call the closure
 	}
@@ -42,12 +47,10 @@ func BenchmarkWithdrawals(b *testing.B) {
 	// Wait for all the workers to finish
 	wg.Wait()
 
-	balanceResponseChan := make(chan int)
-	server.Commands <- BalanceCommand{Response: balanceResponseChan}
-	balance := <-balanceResponseChan
+	balance := server.Balance()
 
 	if balance != 0 {
-		b.Error("Balance wasn't zero:", balance)
+		b.Error("Balance wasn't ten dollars:", balance)
 	}
 }
 
