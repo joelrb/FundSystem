@@ -10,10 +10,11 @@ type FundServer struct {
 }
 
 func NewFundServer(initialBalance int) *FundServer {
+
 	server := &FundServer{
 		// make() creates builtins like channels, maps, and slices
 		Commands: make(chan interface{}),
-		fund:     NewFund(initialBalance),
+		fund:     *NewFund(initialBalance),
 	}
 
 	// Spawn off the server's main loop immediately
