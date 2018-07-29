@@ -9,6 +9,15 @@ type FundServer struct {
 	fund     Fund
 }
 
+// Typedef the callback for readability
+type Transactor func(fund Fund)
+
+// Add a new command type with a callback and a semaphore channel
+type TransactionCommand struct {
+	Transactor Transactor
+	Done       chan bool
+}
+
 func (s *FundServer) Balance() int {
 	responseChan := make(chan int)
 	s.commands <- BalanceCommand{Response: responseChan}
@@ -48,6 +57,11 @@ func (s *FundServer) loop() {
 			balance := s.fund.Balance()
 			getBalance.Response <- balance
 
+		case TransactionCommand:
+			transaction := command.(TransactionCommand)
+			transaction.Transactor(s.fund)
+			transaction.Done <- true
+
 		default:
 			panic(fmt.Sprintf("Unrecognized command: %v", command))
 		}
@@ -61,4 +75,14 @@ type WithdrawCommand struct {
 
 type BalanceCommand struct {
 	Response chan int
+}
+
+func (s *FundServer) Transact(transactor Transactor) {
+	command := TransactionCommand{
+		Transactor: transactor,
+		Done:       make(chan bool),
+	}
+
+	s.commands <- command
+	<-command.Done
 }
