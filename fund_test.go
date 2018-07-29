@@ -24,6 +24,8 @@ func BenchmarkWithdrawals(b *testing.B) {
 	// So, we just declare one and then use it
 	var wg sync.WaitGroup
 
+	pizzaTime := false
+
 	for i := 0; i < WORKERS; i++ {
 		// Let waitgroup know we're adding a goroutine
 		wg.Add(1)
@@ -37,11 +39,17 @@ func BenchmarkWithdrawals(b *testing.B) {
 
 				// Stop when we're down to pizza money
 				if server.Balance() <= 10 {
-					break
+					// Set in the outside scope
+					pizzaTime = true
+					return
 				}
 				server.Withdraw(i)
 			}
 		}() // Remember to call the closure
+
+		if pizzaTime {
+			break
+		}
 	}
 
 	// Wait for all the workers to finish
